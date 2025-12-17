@@ -5,13 +5,14 @@ library(shinycssloaders)
 
 ui <- tags$html(
   lang = "en",
+  fluidPage(
   style = "padding: 0px; margin: 0px;",
   tags$head(
     tags$title("Loughborough University Top 10 items"),
     tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")
   ),
   
-  # Black banner
+  # ---- Black banner ----
   tags$div(
     class = "black-banner",
     tags$div(
@@ -30,7 +31,7 @@ ui <- tags$html(
     )
   ),
   
-  # Blue banner
+  # ---- Blue banner ----
   tags$div(
     class = "blue-banner",
     tags$div(
@@ -46,75 +47,82 @@ ui <- tags$html(
   
   shinyjs::useShinyjs(),
   
-  tags$h2("Loughborough University Research Repository Top 10 items", style = "margin-left: 20px;"),
+  tags$h2(
+    "Loughborough University Research Repository Top 10 items",
+    style = "margin: 20px;"
+  ),
   
   tags$hr(style = "border-top: 1px solid #d3d3d3;"),
   
-  # Inputs row
-  # ---- Inputs row as flex ----
-  tags$div(
-    style = "display: flex; align-items: center; gap: 30px; padding:20px 0;",
+  # ---- Sidebar layout ----
+  sidebarLayout(
+    sidebarPanel(
+      class = "sidebarPanel",
+      width = 3,
+      
+      
+      
+      tags$label("Metric"),
+      radioButtons(
+        "metric", NULL,
+        choices = c("Downloads" = "downloads", "Views" = "views")
+      ),
+      
+      tags$hr(),
+      
+      selectInput(
+        "scope",
+        "Scope",
+        NULL,
+        choices = c("The whole repository" = "scope_all", "Author" = "scope_author")
+      ),
+      
+      textInput(
+        "author_name",
+        "Author name and surname",
+      ),
+      
+      dateRangeInput(
+        "date_range",
+        "Date range",
+        start = Sys.Date() - 30,
+        end   = Sys.Date(),
+        max   = Sys.Date(),
+        separator = " - "
+      ),
+      
+      checkboxInput("all_time", "All time", value = FALSE),
+      
+      tags$hr(),
+      
+      actionButton("refresh", "Go")
+    ),
     
-    # Metric radio buttons
-    tags$div(
-      style = "flex: 0 0 150px; margin-left: 20px;",
-      tags$label("Metric:"),
-      tags$div(style = "margin-top: 10px;",  # adds vertical space
-               radioButtons(
-                 "metric", NULL,
-                 choices = c("Downloads" = "downloads", "Views" = "views")
-               )
+    mainPanel(
+      width = 9,
+      
+      withSpinner(
+        DTOutput("top10_table"),
+        3,
+        color.background = "#8D9C27"
       )
-    ),
-    
-    
-    # Date range
-    tags$div(style = "flex: 1 1 auto;", 
-             dateRangeInput(
-               "date_range",
-               "Date range:",
-               start = Sys.Date() - 30,
-               end = Sys.Date(),
-               max = Sys.Date()
-             )
-    ),
-    # OR label
-    tags$div(style = "flex: 0 0 auto; margin-left: 0px;",  # horizontal gap
-             p(strong("OR"))
-    ),
-    # All time checkbox
-    tags$div(style = "flex: 0 0 auto; margin-left: 0px;", 
-             checkboxInput("all_time", "All time", value = FALSE)
-    ),
-    
-    # Refresh button
-    tags$div(style = "flex: 0 0 auto; margin-right: 20px; padding-top: 15px;",
-             actionButton("refresh", "Refresh Data")
     )
   ),
   
   tags$hr(style = "border-top: 1px solid #d3d3d3;"),
   
-  # Table row
-  fluidRow(
-    column(12,
-           tags$div(
-             style = "margin-left:20px; margin-right:20px;",
-             withSpinner(DTOutput("top10_table"), 3, color.background = "#8D9C27")
-           )
-    )
-  ),
-  
-  # Footer
+  # ---- Footer ----
   tags$div(
-    class = "footer", 
+    class = "footer",
     fluidRow(
-      column(12, 
-             tags$a(
-               href = 'https://doi.org/10.17028/rd.lboro.28525481', 
-               "Accessibility Statement"
-             )
+      column(
+        12,
+        tags$a(
+          href = "https://doi.org/10.17028/rd.lboro.28525481",
+          "Accessibility Statement"
+        )
       )
     )
   )
+)
 )

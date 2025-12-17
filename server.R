@@ -6,6 +6,27 @@ library(shinyjs)
 
 server <- function(input, output, session) {
   
+  shinyjs::disable("refresh")
+  shinyjs::disable("author_name")
+  
+  observe({
+    metric_ok <- !is.null(input$metric) && input$metric != ""
+    
+    author_ok <- TRUE
+    if (input$scope == "scope_author") {
+      author_ok <- !is.null(input$author_name) && input$author_name != ""
+    }
+    
+    refresh_ok <- metric_ok && author_ok
+    
+    if (refresh_ok) {
+      shinyjs::enable("refresh")
+    } else {
+      shinyjs::disable("refresh")
+    }
+  })
+  
+  
   username <- Sys.getenv("FSusername")
   password <- Sys.getenv("FSpassword")
   
@@ -59,15 +80,14 @@ server <- function(input, output, session) {
   # ---- Event reactive: top 10 data fetched only when refresh button clicked ----
   top10_data <- eventReactive(input$refresh, {
     req(input$metric)
-    
+    req(input$scope)
+      
     # Fetch top stats
     stats_req <- request(stats_url()$url) |>
       req_url_query(!!!stats_url()$query) |>
       req_auth_basic(username, password) |>
       req_headers(`User-Agent` = "httr2 - shinyApp/1.0") |>
       req_perform()
-    
-    
     
     stats_json <- resp_body_json(stats_req, simplifyVector = TRUE)
     
@@ -89,6 +109,18 @@ server <- function(input, output, session) {
     
     top_df
   })
+  
+
+# Author search -----------------------------------------------------------
+
+  observeEvent(input$scope, {
+    if (input$scope == "scope_author") {
+      shinyjs::enable("author_name")
+    } else {
+      shinyjs::disable("author_name")
+      updateTextInput(session, "author_name", value = "")
+    }
+  })  
   
   # ---- Render DataTable ----
   output$top10_table <- renderDT({

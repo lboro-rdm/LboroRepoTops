@@ -1,6 +1,7 @@
 library(shiny)
 library(shinyjs)
 library(DT)
+library(shinycssloaders)
 
 ui <- tags$html(
   lang = "en",
@@ -99,7 +100,7 @@ ui <- tags$html(
     column(12,
            tags$div(
              style = "margin-left:20px; margin-right:20px;",
-             DTOutput("top10_table")
+             withSpinner(DTOutput("top10_table"), 3, color.background = "#8D9C27")
            )
     )
   ),
